@@ -21,8 +21,7 @@ model User {
   email          String     @unique
   phoneNumber    String
   profilePicture String
-  Property       Property[]
-  Review         Review[]
+  reviews         Review[]
   bookings       Booking[]
 }
 
@@ -35,8 +34,7 @@ model Host {
   phoneNumber    String
   profilePicture String
   aboutMe        String
-
-  properties Property[]
+  properties     Property[]
 }
 
 model Property {
@@ -44,17 +42,16 @@ model Property {
   title         String
   description   String
   location      String
-  pricePerNight Float
+  pricePerNight Decimal @db.Decimal(10,2)
   bedroomCount  Int
-  bathroomCount Int
+  bathRoomCount Int
   maxGuestCount Int
   hostId        String
   rating        Int
   bookings      Booking[]
-  host          User[]
-  Review        Review[]
-  Host          Host[]
-  amenityId     String?
+  reviews        Review[]
+  host          Host @relation(fields: [hostId], references: [id])
+  amenities  PropertyAmenity[]
 }
 
 model Review {
@@ -63,9 +60,8 @@ model Review {
   propertyId String
   rating     Int
   comment    String
-
-  user     User[]
-  property Property[]
+  user       User     @relation(fields: [userId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id])
 }
 
 model Booking {
@@ -77,12 +73,21 @@ model Booking {
   numberOfGuests Int
   totalPrice     Float
   bookingStatus  String
-
-  user     User[]
-  property Property[]
+  user           User     @relation(fields: [userId], references: [id])
+  property       Property @relation(fields: [propertyId], references: [id])
 }
 
 model Amenity {
   id   String @id @default(uuid())
   name String
+  propertyAmenities      PropertyAmenity[]
+}
+
+model PropertyAmenity {
+  property   Property @relation(fields: [propertyId], references: [id])
+  propertyId String
+  amenity    Amenity @relation(fields: [amenityId], references: [id])
+  amenityId  String
+
+  @@id([propertyId, amenityId])
 }

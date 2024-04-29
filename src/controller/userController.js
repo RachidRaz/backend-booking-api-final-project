@@ -1,11 +1,29 @@
 const prisma = require("../prisma");
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const UserRegister = async (req, res,next) => {
+
+const getUsers = async (req, res, next) => {
+    try {
+        const conditions = {};
+
+        // grab the optional params from the url, defaults to no conditions
+        req.query.email ? conditions.email = req.query.email : null;
+        req.query.username ? conditions.username = req.query.username : null;
+
+        const users = await prisma.user.findMany({
+            where: conditions
+        });
+
+        res.status(200).json({ users })
+    } catch (error) {
+        next(error);
+    }
+}
+
+const UserRegister = async (req, res, next) => {
     const { username, password, name, email, phoneNumber, profilePicture } = req.body;
 
     try {
-        // Check if the user already exists
+        // check if the user already exists
         const existingUser = await prisma.user.findFirst({
             where: {
                 OR: [
@@ -14,14 +32,25 @@ const UserRegister = async (req, res,next) => {
                 ]
             }
         });
-        if (existingUser) {
-            return next({ message: 'User already exists' });
+
+        // Check if the host already exists since the login endpoint is both for users as hosts
+        const existingHost = await prisma.host.findFirst({
+            where: {
+                OR: [
+                    { username },
+                    { email }
+                ]
+            }
+        });
+
+        if (existingUser || existingHost) {
+            return next({ message: 'User or Host already exists with the same username or email.' });
         }
 
-        // Hash the password
+        // hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create the new user with hashed password
+        // create the new user with hashed password
         const newUser = await prisma.user.create({
             data: {
                 username,
@@ -33,41 +62,19 @@ const UserRegister = async (req, res,next) => {
             }
         });
 
-      return  res.status(200).json({ message: 'User registered successfully', user: newUser });
+        return res.status(200).json({ message: 'User registered successfully', user: newUser });
     } catch (error) {
-        console.error('Error registering user:', error);
-       return next({ error: 'Internal Server Error' });
+        next(error);
     }
+
 };
-const UserLogin = async (req, res,next) => {
-    const { username, password } = req.body;
+
+const getUserById = async (req, res, next) => {
 
     try {
+        const userId = req.params.id;
 
-        const user = await prisma.user.findUnique({ where: { username } });
-        if (!user) {
-            return next({ message: 'Invalid username or password' });
-        }
-
-
-        const passwordMatch = await bcrypt.compare(password, user.password);
-        if (!passwordMatch) {
-            return next({ message: 'Invalid username or password' });
-        }
-
-
-        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-        res.status(200).json({ message: 'Login successful', token });
-    } catch (error) {
-        console.error('Error logging in:', error);
-      return  next({ error: 'Internal Server Error' });
-    }
-};
-const getUserById = async (req, res,next) => {
-    const userId = req.params.id;
-
-    try {
+        // find user w/ ID
         const user = await prisma.user.findUnique({
             where: {
                 id: userId,
@@ -80,25 +87,30 @@ const getUserById = async (req, res,next) => {
 
         res.status(200).json({ user });
     } catch (error) {
-        console.error('Error retrieving user:', error);
-     return  next({ error: 'Internal Server Error' });
+        next(error);
     }
 };
-const updateUser = async (req, res,next) => {
-    const userId = req.params.id;
-    const { username, password, name, email, phoneNumber, profilePicture } = req.body;
+
+const updateUser = async (req, res, next) => {
 
     try {
+        const userId = req.params.id;
+        const { username, password, name, email, phoneNumber, profilePicture } = req.body;
+
+        // find user w/ id
         const existingUser = await prisma.user.findUnique({ where: { id: userId } });
+
         if (!existingUser) {
             return next({ message: 'User not found' });
         }
 
+        // when password is provided, generate hashed password
         let hashedPassword;
         if (password) {
             hashedPassword = await bcrypt.hash(password, 10);
         }
 
+        // update users w/ provided datapoints or keep existing details
         const updatedUser = await prisma.user.update({
             where: { id: userId },
             data: {
@@ -113,60 +125,28 @@ const updateUser = async (req, res,next) => {
 
         res.status(200).json({ message: 'User updated successfully', user: updatedUser });
     } catch (error) {
-        console.error('Error updating user:', error);
-       return next({ error: 'Internal Server Error' });
+        next(error);
     }
+
 };
-const deleteUser = async (req, res,next) => {
-    const userId = req.params.id;
+const deleteUser = async (req, res, next) => {
 
     try {
+        const userId = req.params.id;
+
+        // find user w/ ID
         const existingUser = await prisma.user.findUnique({ where: { id: userId } });
         if (!existingUser) {
             return next({ message: 'User not found' });
         }
 
+        // delete user from users table
         await prisma.user.delete({ where: { id: userId } });
 
         res.status(200).json({ message: 'User deleted successfully' });
     } catch (error) {
-        console.error('Error deleting user:', error);
-        return next({ error: 'Internal Server Error' });
-    }
-};
-const getUsers = async (req, res,next) => {
-    try {
-        const users = await prisma.user.findMany();
-        if (!users) {
-          return  next({message: "No user found"})
-            // return next({ message: "No user found" })
-        }
-        res.status(200).json({ users })
-    }
-    catch (error) {
-        console.error('Error retrieving users:', error);
-       return next({ error: 'Internal Server Error' });
-    }
-}
-const getUserByEmail = async (req, res,next) => {
-    const userEmail = req.query.email;
-
-    try {
-        const user = await prisma.user.findUnique({
-            where: {
-                email: userEmail,
-            },
-        });
-
-        if (!user) {
-            return next({ message: 'User not found' });
-        }
-
-        res.status(200).json({ user });
-    } catch (error) {
-        console.error('Error retrieving user:', error);
-       return next({ error: 'Internal Server Error' });
+        next(error);
     }
 };
 
-module.exports = { UserRegister, UserLogin, getUserById, updateUser, deleteUser,getUsers, getUserByEmail  }
+module.exports = { UserRegister, getUserById, updateUser, deleteUser, getUsers }

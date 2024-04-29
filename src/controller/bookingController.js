@@ -1,10 +1,30 @@
 const prisma = require("../prisma");
 
-const createBooking = async (req, res,next) => {
-    const { userId, propertyId, checkinDate, checkoutDate, numberOfGuests, totalPrice, bookingStatus } = req.body;
+const getBookings = async (req, res, next) => {
+    try {
+        const conditions = {};
+
+        // grab the optional params from the url, defaults to no conditions
+        req.query.userId ? conditions.userId = req.query.userId : null;
+
+        // fetch all bookings w/ optional filter
+        const bookings = await prisma.booking.findMany({
+            where: conditions
+        });
+
+        res.status(200).json({ bookings })
+    } catch (error) {
+        next(error);
+    }
+};
+
+const createBooking = async (req, res, next) => {
 
     try {
-        // Create the new booking
+        // grab fields for the new booking
+        const { userId, propertyId, checkinDate, checkoutDate, numberOfGuests, totalPrice, bookingStatus } = req.body;
+
+        // create the new booking
         const newBooking = await prisma.booking.create({
             data: {
                 userId,
@@ -19,31 +39,23 @@ const createBooking = async (req, res,next) => {
 
         res.status(201).json({ message: 'Booking created successfully', booking: newBooking });
     } catch (error) {
-        console.error('Error creating booking:', error);
-       return next({ error: 'Internal Server Error' });
+        next(error);
     }
 };
 
-const getAllBookings = async (req, res,next) => {
-    try {
-        const bookings = await prisma.booking.findMany();
-        res.status(200).json({ bookings });
-    } catch (error) {
-        console.error('Error retrieving bookings:', error);
-       return next({ error: 'Internal Server Error' });
-    }
-};
-
-const getBookingById = async (req, res,next) => {
-    const bookingId = req.params.id;
+const getBookingById = async (req, res, next) => {
 
     try {
+        // grab the booking id 
+        const bookingId = req.params.id;
+
+        // find the booking by id, also return the property relation/ object
         const booking = await prisma.booking.findUnique({
             where: {
                 id: bookingId,
             },
             include: {
-                user: true,
+                // user: true, //this is used for testing, object contains password best practice to return only user fields required for the API
                 property: true
             }
         });
@@ -54,23 +66,35 @@ const getBookingById = async (req, res,next) => {
 
         res.status(200).json({ booking });
     } catch (error) {
-        console.error('Error retrieving booking:', error);
-       return next({ error: 'Internal Server Error' });
+        next(error);
     }
 };
 
-const updateBooking = async (req, res,next) => {
-    const bookingId = req.params.id;
-    const { checkinDate, checkoutDate, numberOfGuests, totalPrice, bookingStatus } = req.body;
+const updateBooking = async (req, res, next) => {
 
     try {
-        const existingBooking = await prisma.booking.findUnique({ where: { id: bookingId } });
+        // retrieve booking id to update
+        const bookingId = req.params.id;
+
+        // retrieve booking details to update
+        const { checkinDate, checkoutDate, numberOfGuests, totalPrice, bookingStatus } = req.body;
+
+        // check if booking exists
+        const existingBooking = await prisma.booking.findUnique({
+            where: {
+                id: bookingId
+            }
+        });
+
         if (!existingBooking) {
             return next({ message: 'Booking not found' });
         }
 
+        // update the booking w/ new details or keep existing booking fields
         const updatedBooking = await prisma.booking.update({
-            where: { id: bookingId },
+            where: {
+                id: bookingId
+            },
             data: {
                 checkinDate: checkinDate || existingBooking.checkinDate,
                 checkoutDate: checkoutDate || existingBooking.checkoutDate,
@@ -81,47 +105,36 @@ const updateBooking = async (req, res,next) => {
         });
 
         res.status(200).json({ message: 'Booking updated successfully', booking: updatedBooking });
+
     } catch (error) {
-        console.error('Error updating booking:', error);
-       return next({ error: 'Internal Server Error' });
+        next(error);
     }
 };
 
-const deleteBooking = async (req, res,next) => {
-    const bookingId = req.params.id;
+const deleteBooking = async (req, res, next) => {
 
     try {
-        const existingBooking = await prisma.booking.findUnique({ where: { id: bookingId } });
+        // retrieve booking id
+        const bookingId = req.params.id;
+
+        // grab and validate booking from id
+        const existingBooking = await prisma.booking.findUnique({
+            where: {
+                id: bookingId
+            }
+        });
+
         if (!existingBooking) {
             return next({ message: 'Booking not found' });
         }
 
+        // remove the booking from the bookings table
         await prisma.booking.delete({ where: { id: bookingId } });
 
         res.status(200).json({ message: 'Booking deleted successfully' });
     } catch (error) {
-        console.error('Error deleting booking:', error);
-       return next({ error: 'Internal Server Error' });
+        next(error);
     }
 };
-const getAllBookingFilter = async (req, res,next) => {
-    try {
-        const { userId } = req.query;
 
-        let bookingFilter = {};
-
-        if (userId) {
-            bookingFilter.userId = userId;
-        }
-
-        const bookings = await prisma.booking.findMany({
-            where: bookingFilter
-        });
-
-        res.status(200).json({ bookings });
-    } catch (error) {
-        console.error('Error retrieving bookings:', error);
-       return next({ error: 'Internal Server Error' });
-    }
-};
-module.exports = { createBooking, getAllBookings, getBookingById, updateBooking, deleteBooking,getAllBookingFilter };
+module.exports = { createBooking, getBookings, getBookingById, updateBooking, deleteBooking };

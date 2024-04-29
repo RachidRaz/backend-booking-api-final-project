@@ -1,7 +1,29 @@
 const prisma = require("../prisma");
 const bcrypt = require('bcrypt');
 
-const createHost = async (req, res,next) => {
+const getHosts = async (req, res, next) => {
+
+    try {
+        let conditions = {};
+
+        // grab the optional name param from the url (returns matches even w/ parts of the name)
+        // defaults to grabbing all hosts
+        req.query.name ? conditions.name = {
+            contains: req.query.name
+        } : null;
+
+        // fetch all bookings w/ optional filter
+        const hosts = await prisma.host.findMany({
+            where: conditions
+        });
+
+        res.status(200).json({ hosts });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const createHost = async (req, res, next) => {
     const { username, password, name, email, phoneNumber, profilePicture, aboutMe } = req.body;
 
     try {
@@ -14,8 +36,19 @@ const createHost = async (req, res,next) => {
                 ]
             }
         });
-        if (existingHost) {
-            return res.status(400).json({ message: 'Host already exists' });
+
+        // Check if the user already exists since the login is both for users as hosts
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { username },
+                    { email }
+                ]
+            }
+        });
+
+        if (existingHost || existingUser) {
+            return res.status(400).json({ message: 'Host or User already exists with the same username or email.' });
         }
 
         // Hash the password
@@ -37,11 +70,11 @@ const createHost = async (req, res,next) => {
         res.status(201).json({ message: 'Host registered successfully', host: newHost });
     } catch (error) {
         console.error('Error registering host:', error);
-       return next({ error: 'Internal Server Error' });
+        return next({ error: 'Internal Server Error' });
     }
 };
 
-const getHostById = async (req, res,next) => {
+const getHostById = async (req, res, next) => {
     const hostId = req.params.id;
 
     try {
@@ -58,11 +91,11 @@ const getHostById = async (req, res,next) => {
         res.status(200).json({ host });
     } catch (error) {
         console.error('Error retrieving host:', error);
-       return next({ error: 'Internal Server Error' });
+        return next({ error: 'Internal Server Error' });
     }
 };
 
-const updateHost = async (req, res,next) => {
+const updateHost = async (req, res, next) => {
     const hostId = req.params.id;
     const { username, password, name, email, phoneNumber, profilePicture, aboutMe } = req.body;
 
@@ -93,11 +126,11 @@ const updateHost = async (req, res,next) => {
         res.status(200).json({ message: 'Host updated successfully', host: updatedHost });
     } catch (error) {
         console.error('Error updating host:', error);
-       return next({ error: 'Internal Server Error' });
+        return next({ error: 'Internal Server Error' });
     }
 };
 
-const deleteHost = async (req, res,next) => {
+const deleteHost = async (req, res, next) => {
     const hostId = req.params.id;
 
     try {
@@ -111,34 +144,8 @@ const deleteHost = async (req, res,next) => {
         res.status(200).json({ message: 'Host deleted successfully' });
     } catch (error) {
         console.error('Error deleting host:', error);
-       return next({ error: 'Internal Server Error' });
+        return next({ error: 'Internal Server Error' });
     }
 };
-const getAllHosts = async (req, res,next) => {
-    try {
-        const hosts = await prisma.host.findMany();
-        res.status(200).json({ hosts });
-    } catch (error) {
-        console.error('Error retrieving hosts:', error);
-       return next({ error: 'Internal Server Error' });
-    }
-};
-const getHostByName = async (req, res,next) => {
-    const { name } = req.query;
-    try {
-        const hosts = await prisma.host.findMany({
-            where: {
-                name: {
-                    equals: name
-                }
-            }
-        });
 
-      return  res.status(200).json({ hosts });
-    } catch (error) {
-        console.error('Error retrieving hosts by name:', error);
-    return next({message:'Internal Server Error'})
-        //   return return next({ error: 'Internal Server Error' });
-    }
-};
-module.exports = { createHost,getAllHosts, getHostById, updateHost, deleteHost,getHostByName };
+module.exports = { createHost, getHosts, getHostById, updateHost, deleteHost };

@@ -1,9 +1,33 @@
 const prisma = require("../prisma");
 
-const createProperty = async (req, res,next) => {
-    const { title, description, location, pricePerNight, bedroomCount, bathroomCount, maxGuestCount, hostId, rating, amenityId } = req.body;
+const getProperties = async (req, res, next) => {
+    try {
+
+        const conditions = {};
+
+        // grab the optional params from the url, defaults to no conditions if none are provided
+        // the API has specific query requirements, but a good alternative for comprehensive filtering would be to have ranges for price and an array to include multiple amenities and locations
+        req.query.location ? conditions.location = req.query.location : null;
+        req.query.pricePerNight ? conditions.pricePerNight = req.query.pricePerNight : null;
+        req.query.amenities ? conditions.amenities = req.query.amenities : null;
+
+        const properties = await prisma.property.findMany({
+            where: conditions
+        });
+
+        res.status(200).json({ properties });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const createProperty = async (req, res, next) => {
+
 
     try {
+        // grab the property details and create a new property
+        const { title, description, location, pricePerNight, bedroomCount, bathRoomCount, maxGuestCount, hostId, rating, amenityId } = req.body;
+
         const newProperty = await prisma.property.create({
             data: {
                 title,
@@ -11,7 +35,7 @@ const createProperty = async (req, res,next) => {
                 location,
                 pricePerNight,
                 bedroomCount,
-                bathroomCount,
+                bathRoomCount,
                 maxGuestCount,
                 hostId,
                 rating,
@@ -21,15 +45,18 @@ const createProperty = async (req, res,next) => {
 
         res.status(201).json({ message: 'Property created successfully', property: newProperty });
     } catch (error) {
-        console.error('Error creating property:', error);
-       return next({ error: 'Internal Server Error' });
+        next(error);
     }
 };
 
-const getPropertyById = async (req, res,next) => {
-    const propertyId = req.params.id;
+const getPropertyById = async (req, res, next) => {
+
 
     try {
+
+        // retrieve property by id
+        const propertyId = req.params.id;
+
         const property = await prisma.property.findUnique({
             where: {
                 id: propertyId,
@@ -42,23 +69,29 @@ const getPropertyById = async (req, res,next) => {
 
         res.status(200).json({ property });
     } catch (error) {
-        console.error('Error retrieving property:', error);
-       return next({ error: 'Internal Server Error' });
+        next(error);
     }
 };
 
-const updateProperty = async (req, res,next) => {
+const updateProperty = async (req, res, next) => {
+
+    // fetch the property id and its latest details
     const propertyId = req.params.id;
     const { title, description, location, pricePerNight, bedroomCount, bathroomCount, maxGuestCount, hostId, rating, amenityId } = req.body;
 
     try {
+        // retrieve the current property details and validate that the property exists    
         const existingProperty = await prisma.property.findUnique({ where: { id: propertyId } });
+
         if (!existingProperty) {
             return next({ message: 'Property not found' });
         }
 
+        // update w/ the latest details or retain the existing property details
         const updatedProperty = await prisma.property.update({
-            where: { id: propertyId },
+            where: {
+                id: propertyId
+            },
             data: {
                 title: title || existingProperty.title,
                 description: description || existingProperty.description,
@@ -75,83 +108,35 @@ const updateProperty = async (req, res,next) => {
 
         res.status(200).json({ message: 'Property updated successfully', property: updatedProperty });
     } catch (error) {
-        console.error('Error updating property:', error);
-       return next({ error: 'Internal Server Error' });
+        next(error);
     }
 };
 
-const deleteProperty = async (req, res,next) => {
-    const propertyId = req.params.id;
+const deleteProperty = async (req, res, next) => {
+
 
     try {
-        const existingProperty = await prisma.property.findUnique({ where: { id: propertyId } });
+        // fetch the property id and property details
+        const propertyId = req.params.id;
+
+        const existingProperty = await prisma.property.findUnique({
+            where: {
+                id: propertyId
+            }
+        });
+
         if (!existingProperty) {
             return next({ message: 'Property not found' });
         }
 
+        // delete the property from the property table
         await prisma.property.delete({ where: { id: propertyId } });
 
         res.status(200).json({ message: 'Property deleted successfully' });
+
     } catch (error) {
-        console.error('Error deleting property:', error);
-       return next({ error: 'Internal Server Error' });
+        next(error);
     }
 };
 
-const getAllProperties = async (req, res,next) => {
-    try {
-        const properties = await prisma.property.findMany();
-        res.status(200).json({ properties });
-    } catch (error) {
-        console.error('Error retrieving properties:', error);
-       return next({ error: 'Internal Server Error' });
-    }
-};
-const getFilteredProperties = async (req, res,next) => {
-    try {
-        const { location, pricePerNight, amenities: amenityFilters } = req.query;
-
-        let propertyFilter = {};
-
-        if (location) {
-            propertyFilter.location = location;
-        }
-
-        if (pricePerNight) {
-            propertyFilter.pricePerNight = parseFloat(pricePerNight);
-        }
-
-        const properties = await prisma.property.findMany({
-            where: propertyFilter,
-        });
-
-        let propertyIds = properties.map(property => property.id);
-
-        let amenities = [];
-
-        if (amenityFilters) {
-            const amenityArray = Array.isArray(amenityFilters) ? amenityFilters : [amenityFilters];
-            amenities = await prisma.amenity.findMany({
-                where: {
-                    name: { in: amenityArray }
-                }
-            });
-        }
-
-        // Map amenities to properties
-        const propertiesWithAmenities = properties.map(property => {
-            const propertyAmenities = amenities.filter(amenity => amenity.properties.some(prop => prop.id === property.id));
-            return { ...property, amenities: propertyAmenities };
-        });
-
-        res.status(200).json({ properties: propertiesWithAmenities });
-    } catch (error) {
-        console.error('Error retrieving properties:', error);
-       return next({ error: 'Internal Server Error' });
-    }
-};
-
-
-
-
-module.exports = { createProperty, getPropertyById, updateProperty, deleteProperty, getAllProperties, getFilteredProperties };
+module.exports = { createProperty, getPropertyById, updateProperty, deleteProperty, getProperties };

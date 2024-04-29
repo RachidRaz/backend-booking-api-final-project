@@ -1,19 +1,26 @@
 const jwt = require('jsonwebtoken');
 
 const authenticateToken = (req, res, next) => {
+    try {
+        const authHeader = req.headers['authorization'];
 
-    const authHeader = req.headers['authorization'];
+        const token = authHeader;
+        if (token == null) {
+            throw new Error("Missing authorization Token");
+        };
 
-    const token =authHeader;
-    console.log('token')
-    if (token == null) next("Token error");
+        jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+            if (err) {
+                throw new Error(err.message);
+            }
 
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    
-        if (err) next("Wrong");
-        req.user = user;
-        next();
-    });
+            req.user = user;
+            next();
+        });
+    } catch (error) {
+        next(error);
+    }
+
 };
 
 module.exports = { authenticateToken };

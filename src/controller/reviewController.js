@@ -1,10 +1,28 @@
 const prisma = require("../prisma");
+const Sentry = require('@sentry/node');
 
-// Create a new review
-const createReview = async (req, res,next) => {
-    const { userId, propertyId, rating, comment } = req.body;
+
+const getAllReviews = async (req, res, next) => {
+    try {
+        // retrieve all reviews
+        const reviews = await prisma.review.findMany({
+            include: {
+                // user: true,
+                property: true //retrieve the property details w/ the reviews
+            }
+        });
+        res.status(200).json({ reviews });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const createReview = async (req, res, next) => {
 
     try {
+        // creating a new review for a property
+        const { userId, propertyId, rating, comment } = req.body;
+
         const newReview = await prisma.review.create({
             data: {
                 userId,
@@ -16,16 +34,17 @@ const createReview = async (req, res,next) => {
 
         res.status(201).json({ message: 'Review created successfully', review: newReview });
     } catch (error) {
-        console.error('Error creating review:', error);
-       return next({ error: 'Internal Server Error' });
+        next(error);
     }
 };
 
-// Get a review by ID
-const getReviewById = async (req, res,next) => {
-    const reviewId = req.params.id;
+
+const getReviewById = async (req, res, next) => {
 
     try {
+        // retrieve review from id
+        const reviewId = req.params.id;
+
         const review = await prisma.review.findUnique({
             where: {
                 id: reviewId,
@@ -38,62 +57,74 @@ const getReviewById = async (req, res,next) => {
 
         res.status(200).json({ review });
     } catch (error) {
-        console.error('Error retrieving review:', error);
-       return next({ error: 'Internal Server Error' });
+        next(error);
     }
 };
 
-// Update a review
-const updateReview = async (req, res,next) => {
-    const reviewId = req.params.id;
-    const { userId, propertyId, rating, comment } = req.body;
+const updateReview = async (req, res, next) => {
+
 
     try {
+
+        const reviewId = req.params.id;
+        const {rating, comment } = req.body;
+
+        // validate if review exists
+        const existingReview = await prisma.review.findUnique({
+            where: {
+                id: reviewId
+            }
+        });
+
+        if (!existingReview) {
+            return next({ message: 'Review not found' });
+        }
+
+        // update review or default to existing values
         const updatedReview = await prisma.review.update({
-            where: { id: reviewId },
+            where: {
+                id: reviewId,
+            },
             data: {
-                userId,
-                propertyId,
-                rating,
-                comment
+                rating: rating || existingReview.rating,
+                comment: comment || existingReview.comment
             }
         });
 
         res.status(200).json({ message: 'Review updated successfully', review: updatedReview });
+
     } catch (error) {
-        console.error('Error updating review:', error);
-       return next({ error: 'Internal Server Error' });
+        next(error);
     }
 };
 
-// Delete a review
-const deleteReview = async (req, res,next) => {
-    const reviewId = req.params.id;
+const deleteReview = async (req, res, next) => {
 
     try {
+        // retrieve review and delete
+        const reviewId = req.params.id;
+
+        // find review w/ ID
+        const existingReview = await prisma.review.findUnique({
+            where: {
+                id: reviewId
+            }
+        });
+
+        if (!existingReview) {
+            return next({ message: 'Review not found' });
+        }
+
         await prisma.review.delete({
-            where: { id: reviewId }
+            where: {
+                id: reviewId
+            }
         });
 
         res.status(200).json({ message: 'Review deleted successfully' });
     } catch (error) {
-        console.error('Error deleting review:', error);
-       return next({ error: 'Internal Server Error' });
+        next(error);
     }
 };
-const getAllReviews = async (req, res,next) => {
-    try {
-        
-        const reviews = await prisma.review.findMany({
-            include: {
-                user: true, 
-                property: true 
-            }
-        });
-        res.status(200).json({ reviews });
-    } catch (error) {
-        console.error('Error retrieving reviews:', error);
-       return next({ error: 'Internal Server Error' });
-    }
-};
-module.exports = { createReview, getReviewById, updateReview, deleteReview,getAllReviews };
+
+module.exports = { createReview, getReviewById, updateReview, deleteReview, getAllReviews };
