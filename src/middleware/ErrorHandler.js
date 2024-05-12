@@ -1,7 +1,7 @@
 const Sentry = require('@sentry/node');
 
 module.exports.ErrorHandler = (err, req, res, next) => {
-    // error handling with sentry
+    // Error handler w/ reporting to sentry
     Sentry.captureException(err); 
 
     const errStatus = err.statusCode || 500;

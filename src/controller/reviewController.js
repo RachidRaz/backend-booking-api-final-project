@@ -11,7 +11,7 @@ const getAllReviews = async (req, res, next) => {
                 property: true //retrieve the property details w/ the reviews
             }
         });
-        res.status(200).json({ reviews });
+        res.status(200).json(reviews);
     } catch (error) {
         next(error);
     }
@@ -22,6 +22,10 @@ const createReview = async (req, res, next) => {
     try {
         // creating a new review for a property
         const { userId, propertyId, rating, comment } = req.body;
+
+        if (!userId || !propertyId || !rating || !comment) {
+            return res.status(400).json("All fields are required.");
+        }
 
         const newReview = await prisma.review.create({
             data: {
@@ -52,10 +56,10 @@ const getReviewById = async (req, res, next) => {
         });
 
         if (!review) {
-            return next({ message: 'Review not found' });
+            return res.status(404).json("Review not found");
         }
 
-        res.status(200).json({ review });
+        res.status(200).json(review);
     } catch (error) {
         next(error);
     }
@@ -67,7 +71,7 @@ const updateReview = async (req, res, next) => {
     try {
 
         const reviewId = req.params.id;
-        const {rating, comment } = req.body;
+        const { rating, comment } = req.body;
 
         // validate if review exists
         const existingReview = await prisma.review.findUnique({
@@ -77,7 +81,7 @@ const updateReview = async (req, res, next) => {
         });
 
         if (!existingReview) {
-            return next({ message: 'Review not found' });
+            return res.status(404).json("Review not found");
         }
 
         // update review or default to existing values
@@ -112,7 +116,7 @@ const deleteReview = async (req, res, next) => {
         });
 
         if (!existingReview) {
-            return next({ message: 'Review not found' });
+            return res.status(404).json("Review not found");
         }
 
         await prisma.review.delete({

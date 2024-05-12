@@ -768,7 +768,7 @@
                   "variable": [
                     {
                       "key": "propertyId",
-                      "value": "h0123456-78f0-1234-5678-9abcdef01234",
+                      "value": "z0123456-78ab-cdef-9012-3456789abcdef-2",
                       "description": "(Required) "
                     }
                   ]
@@ -854,7 +854,7 @@
                   "variable": [
                     {
                       "key": "propertyId",
-                      "value": "h0123456-78f0-1234-5678-9abcdef01234",
+                      "value": "z0123456-78ab-cdef-9012-3456789abcdef-2",
                       "description": "(Required) "
                     }
                   ]
@@ -946,7 +946,7 @@
                   "variable": [
                     {
                       "key": "propertyId",
-                      "value": "h0123456-78f0-1234-5678-9abcdef01234",
+                      "value": "z0123456-78ab-cdef-9012-3456789abcdef-2",
                       "description": "(Required) "
                     }
                   ]
@@ -1845,7 +1845,7 @@
                   "variable": [
                     {
                       "key": "reviewId",
-                      "value": "j0123456-78f0-1234-5678-9abcdef01234",
+                      "value": "j0123456-78f0-1234-5678-9abcdef01234-2",
                       "description": "(Required) "
                     }
                   ]
@@ -1931,7 +1931,7 @@
                   "variable": [
                     {
                       "key": "reviewId",
-                      "value": "j0123456-78f0-1234-5678-9abcdef01234",
+                      "value": "j0123456-78f0-1234-5678-9abcdef01234-2",
                       "description": "(Required) "
                     }
                   ]
@@ -2023,7 +2023,7 @@
                   "variable": [
                     {
                       "key": "reviewId",
-                      "value": "j0123456-78f0-1234-5678-9abcdef01234",
+                      "value": "j0123456-78f0-1234-5678-9abcdef01234-2",
                       "description": "(Required) "
                     }
                   ]

@@ -9,7 +9,7 @@ const getAmenities = async (req, res, next) => {
             return next({ message: "No amenities found" });
         }
 
-        res.status(200).json({ amenities });
+        res.status(200).json(amenities);
 
     } catch (error) {
         next(error);
@@ -60,10 +60,10 @@ const getAmenityById = async (req, res, next) => {
         });
 
         if (!amenity) {
-            return next({ message: 'Amenity not found' });
+            return res.status(404).json('Amenity not found');
         }
 
-        res.status(200).json({ amenity });
+        res.status(200).json(amenity);
 
     } catch (error) {
         next(error);
@@ -90,7 +90,7 @@ const updateAmenity = async (req, res, next) => {
 
         const existingAmenity = await prisma.amenity.findUnique({ where: { id: amenityId } });
         if (!existingAmenity) {
-            return next({ message: 'Amenity not found' });
+            return res.status(404).json('Amenity not found');
         }
 
         // update the amenity with the new name
@@ -118,7 +118,7 @@ const deleteAmenity = async (req, res, next) => {
         const existingAmenity = await prisma.amenity.findUnique({ where: { id: amenityId } });
 
         if (!existingAmenity) {
-            return next({ message: 'Amenity not found' });
+            return res.status(404).json('Amenity not found');
         }
 
         // delete any related records in the PropertyAmenity table

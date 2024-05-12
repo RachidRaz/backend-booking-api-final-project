@@ -13,7 +13,7 @@ const getUsers = async (req, res, next) => {
             where: conditions
         });
 
-        res.status(200).json({ users })
+        res.status(200).json(users)
     } catch (error) {
         next(error);
     }
@@ -21,6 +21,10 @@ const getUsers = async (req, res, next) => {
 
 const UserRegister = async (req, res, next) => {
     const { username, password, name, email, phoneNumber, profilePicture } = req.body;
+
+    if (!username || !password || !name || !email || !phoneNumber) {
+        return res.status(400).json({ message: "All fields are required." });
+    }
 
     try {
         // check if the user already exists
@@ -34,6 +38,10 @@ const UserRegister = async (req, res, next) => {
         });
 
         // Check if the host already exists since the login endpoint is both for users as hosts
+        // alternatively we could combine users and hosts into one table (users table), each user will have a login account (logins table) w/ an username/password
+        // this way hosts can be a guests too, making a booking to a property - unless the platform is designed to function differently with two dashboards for each hosts and users/guests
+        // but even then it would make sense to have them operate the same and have a dashboard/user type that displays the proper dashboards, functionality and validation
+
         const existingHost = await prisma.host.findFirst({
             where: {
                 OR: [
@@ -44,7 +52,7 @@ const UserRegister = async (req, res, next) => {
         });
 
         if (existingUser || existingHost) {
-            return next({ message: 'User or Host already exists with the same username or email.' });
+            return res.status(400).json("User or Host already exists with the same username or email.");
         }
 
         // hash the password
@@ -62,7 +70,7 @@ const UserRegister = async (req, res, next) => {
             }
         });
 
-        return res.status(200).json({ message: 'User registered successfully', user: newUser });
+        return res.status(201).json({ message: 'User registered successfully', user: newUser });
     } catch (error) {
         next(error);
     }
@@ -82,10 +90,10 @@ const getUserById = async (req, res, next) => {
         });
 
         if (!user) {
-            return next({ message: 'User not found' });
+            return res.status(404).json("User not found");
         }
 
-        res.status(200).json({ user });
+        res.status(200).json(user);
     } catch (error) {
         next(error);
     }
@@ -101,7 +109,7 @@ const updateUser = async (req, res, next) => {
         const existingUser = await prisma.user.findUnique({ where: { id: userId } });
 
         if (!existingUser) {
-            return next({ message: 'User not found' });
+            return res.status(404).json("User not found");
         }
 
         // when password is provided, generate hashed password
@@ -137,7 +145,7 @@ const deleteUser = async (req, res, next) => {
         // find user w/ ID
         const existingUser = await prisma.user.findUnique({ where: { id: userId } });
         if (!existingUser) {
-            return next({ message: 'User not found' });
+            return res.status(404).json("User not found");
         }
 
         // delete user from users table

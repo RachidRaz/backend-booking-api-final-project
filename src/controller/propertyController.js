@@ -15,7 +15,7 @@ const getProperties = async (req, res, next) => {
             where: conditions
         });
 
-        res.status(200).json({ properties });
+        res.status(200).json(properties);
     } catch (error) {
         next(error);
     }
@@ -27,6 +27,10 @@ const createProperty = async (req, res, next) => {
     try {
         // grab the property details and create a new property
         const { title, description, location, pricePerNight, bedroomCount, bathRoomCount, maxGuestCount, hostId, rating, amenityId } = req.body;
+
+        if (!title || !description || !location || !pricePerNight || !bedroomCount || !bathRoomCount || !maxGuestCount || !hostId || !rating) {
+            return res.status(400).json("All fields are required.");
+        }
 
         const newProperty = await prisma.property.create({
             data: {
@@ -64,10 +68,10 @@ const getPropertyById = async (req, res, next) => {
         });
 
         if (!property) {
-            return next({ message: 'Property not found' });
+            return res.status(404).json('Property not found');
         }
 
-        res.status(200).json({ property });
+        res.status(200).json(property);
     } catch (error) {
         next(error);
     }
@@ -84,7 +88,7 @@ const updateProperty = async (req, res, next) => {
         const existingProperty = await prisma.property.findUnique({ where: { id: propertyId } });
 
         if (!existingProperty) {
-            return next({ message: 'Property not found' });
+            return res.status(404).json('Property not found');
         }
 
         // update w/ the latest details or retain the existing property details
@@ -126,7 +130,7 @@ const deleteProperty = async (req, res, next) => {
         });
 
         if (!existingProperty) {
-            return next({ message: 'Property not found' });
+            return res.status(404).json('Property not found');
         }
 
         // delete the property from the property table

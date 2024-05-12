@@ -21,16 +21,16 @@ model User {
   email          String     @unique
   phoneNumber    String
   profilePicture String
-  reviews         Review[]
+  reviews        Review[]
   bookings       Booking[]
 }
 
 model Host {
-  id             String @id @default(uuid())
-  username       String @unique
+  id             String      @id @default(uuid())
+  username       String      @unique
   password       String
   name           String
-  email          String @unique
+  email          String      @unique
   phoneNumber    String
   profilePicture String
   aboutMe        String
@@ -38,30 +38,30 @@ model Host {
 }
 
 model Property {
-  id            String    @id @default(uuid())
+  id            String            @id @default(uuid())
   title         String
   description   String
   location      String
-  pricePerNight Decimal @db.Decimal(10,2)
+  pricePerNight Decimal           @db.Decimal(10,2)
   bedroomCount  Int
   bathRoomCount Int
   maxGuestCount Int
   hostId        String
   rating        Int
-  bookings      Booking[]
-  reviews        Review[]
-  host          Host @relation(fields: [hostId], references: [id])
-  amenities  PropertyAmenity[]
+  bookings      Booking[]         
+  reviews       Review[]          
+  host          Host              @relation(fields: [hostId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  amenities     PropertyAmenity[] 
 }
 
 model Review {
-  id         String @id @default(uuid())
+  id         String   @id @default(uuid())
   userId     String
   propertyId String
   rating     Int
   comment    String
-  user       User     @relation(fields: [userId], references: [id])
-  property   Property @relation(fields: [propertyId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model Booking {
@@ -73,20 +73,20 @@ model Booking {
   numberOfGuests Int
   totalPrice     Float
   bookingStatus  String
-  user           User     @relation(fields: [userId], references: [id])
-  property       Property @relation(fields: [propertyId], references: [id])
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  property       Property @relation(fields: [propertyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model Amenity {
-  id   String @id @default(uuid())
-  name String
-  propertyAmenities      PropertyAmenity[]
+  id                String            @id @default(uuid())
+  name              String
+  propertyAmenities PropertyAmenity[]
 }
 
 model PropertyAmenity {
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   propertyId String
-  amenity    Amenity @relation(fields: [amenityId], references: [id])
+  amenity    Amenity  @relation(fields: [amenityId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   amenityId  String
 
   @@id([propertyId, amenityId])

@@ -133,7 +133,7 @@
                   "body": ""
                 }
               ]
-            },
+            },  
             {
               "name": "Update user by ID",
               "event": [
@@ -1307,7 +1307,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"id\": \"g9012345-67ef-0123-4567-89abcdef0123\",\n  \"title\": \"Cozy Mountain Retreat\",\n  \"description\": \"Experience tranquility in our cozy cabin situated on a serene mountain peak.\",\n  \"location\": \"Rocky Mountains, Colorado\",\n  \"pricePerNight\": 120.5,\n  \"bedroomCount\": 3,\n  \"bathRoomCount\": 2,\n  \"maxGuestCount\": 5,\n  \"hostId\": \"f1234567-89ab-cdef-0123-456789abcdef\",\n  \"rating\": 5\n}"
+                  "body": "{\n  \"id\": \"z9876543-21fe-dcba-1098-76543210dcba\",\n  \"title\": \"Cozy Mountain Retreat\",\n  \"description\": \"Experience tranquility in our cozy cabin situated on a serene mountain peak.\",\n  \"location\": \"Rocky Mountains, Colorado\",\n  \"pricePerNight\": 120.5,\n  \"bedroomCount\": 3,\n  \"bathRoomCount\": 2,\n  \"maxGuestCount\": 5,\n  \"hostId\": \"f1234567-89ab-cdef-0123-456789abcdef\",\n  \"rating\": 5\n}"
                 },
                 {
                   "id": "5e5f2dec-6a0b-421e-9607-a4d6e246771b",
@@ -1740,7 +1740,7 @@
                 }
               ],
               "cookie": [],
-              "body": "[\n  {\n    \"id\": \"g9012345-67ef-0123-4567-89abcdef0123\",\n    \"title\": \"Cozy Mountain Retreat\",\n    \"description\": \"Experience tranquility in our cozy cabin situated on a serene mountain peak.\",\n    \"location\": \"Rocky Mountains, Colorado\",\n    \"pricePerNight\": 120.5,\n    \"bedroomCount\": 3,\n    \"bathRoomCount\": 2,\n    \"maxGuestCount\": 5,\n    \"hostId\": \"f1234567-89ab-cdef-0123-456789abcdef\",\n    \"rating\": 5\n  },\n  {\n    \"id\": \"g9012345-67ef-0123-4567-89abcdef0123\",\n    \"title\": \"Cozy Mountain Retreat\",\n    \"description\": \"Experience tranquility in our cozy cabin situated on a serene mountain peak.\",\n    \"location\": \"Rocky Mountains, Colorado\",\n    \"pricePerNight\": 120.5,\n    \"bedroomCount\": 3,\n    \"bathRoomCount\": 2,\n    \"maxGuestCount\": 5,\n    \"hostId\": \"f1234567-89ab-cdef-0123-456789abcdef\",\n    \"rating\": 5\n  }\n]"
+              "body": "[\n  {\n    \"id\": \"z9876543-21fe-dcba-1098-76543210dcba\",\n    \"title\": \"Cozy Mountain Retreat\",\n    \"description\": \"Experience tranquility in our cozy cabin situated on a serene mountain peak.\",\n    \"location\": \"Rocky Mountains, Colorado\",\n    \"pricePerNight\": 120.5,\n    \"bedroomCount\": 3,\n    \"bathRoomCount\": 2,\n    \"maxGuestCount\": 5,\n    \"hostId\": \"f1234567-89ab-cdef-0123-456789abcdef\",\n    \"rating\": 5\n  },\n  {\n    \"id\": \"z9876543-21fe-dcba-1098-76543210dcba\",\n    \"title\": \"Cozy Mountain Retreat\",\n    \"description\": \"Experience tranquility in our cozy cabin situated on a serene mountain peak.\",\n    \"location\": \"Rocky Mountains, Colorado\",\n    \"pricePerNight\": 120.5,\n    \"bedroomCount\": 3,\n    \"bathRoomCount\": 2,\n    \"maxGuestCount\": 5,\n    \"hostId\": \"f1234567-89ab-cdef-0123-456789abcdef\",\n    \"rating\": 5\n  }\n]"
             }
           ]
         },

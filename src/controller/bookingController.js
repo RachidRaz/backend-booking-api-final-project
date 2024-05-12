@@ -12,7 +12,7 @@ const getBookings = async (req, res, next) => {
             where: conditions
         });
 
-        res.status(200).json({ bookings })
+        res.status(200).json(bookings)
     } catch (error) {
         next(error);
     }
@@ -23,6 +23,10 @@ const createBooking = async (req, res, next) => {
     try {
         // grab fields for the new booking
         const { userId, propertyId, checkinDate, checkoutDate, numberOfGuests, totalPrice, bookingStatus } = req.body;
+
+        if (!userId || !propertyId || !checkinDate || !checkoutDate || !numberOfGuests || !totalPrice || !bookingStatus) {
+            return res.status(400).json("All fields are required.");
+        }
 
         // create the new booking
         const newBooking = await prisma.booking.create({
@@ -61,10 +65,10 @@ const getBookingById = async (req, res, next) => {
         });
 
         if (!booking) {
-            return next({ message: 'Booking not found' });
+            return res.status(404).json("Booking not found");
         }
 
-        res.status(200).json({ booking });
+        res.status(200).json(booking);
     } catch (error) {
         next(error);
     }
@@ -87,7 +91,7 @@ const updateBooking = async (req, res, next) => {
         });
 
         if (!existingBooking) {
-            return next({ message: 'Booking not found' });
+            return res.status(404).json("Booking not found");
         }
 
         // update the booking w/ new details or keep existing booking fields
@@ -125,7 +129,7 @@ const deleteBooking = async (req, res, next) => {
         });
 
         if (!existingBooking) {
-            return next({ message: 'Booking not found' });
+            return res.status(404).json("Booking not found");
         }
 
         // remove the booking from the bookings table
