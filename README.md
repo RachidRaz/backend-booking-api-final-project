@@ -22,5 +22,5 @@ To setup prisma, follow these steps:
 ## Running Postman Tests
 
 To run postman collection test (positive + negtive), follow these steps:
-1. Run `npx prisma migrate reset`, choose `yes`
+1. Run `npx prisma migrate reset`, choose `yes`clear
 2. Run `npm run test` (both tests will run)

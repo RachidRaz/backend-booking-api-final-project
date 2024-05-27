@@ -9,10 +9,28 @@ const getProperties = async (req, res, next) => {
         // the API has specific query requirements, but a good alternative for comprehensive filtering would be to have ranges for price and an array to include multiple amenities and locations
         req.query.location ? conditions.location = req.query.location : null;
         req.query.pricePerNight ? conditions.pricePerNight = req.query.pricePerNight : null;
-        req.query.amenities ? conditions.amenities = req.query.amenities : null;
+
+        if (req.query.amenities) {
+            conditions.amenities = {
+                some: {
+                    amenity: {
+                        name: req.query.amenities
+                    }
+                }
+            };
+        }
+
+        console.log(conditions);
 
         const properties = await prisma.property.findMany({
-            where: conditions
+            where: conditions,
+            include: {
+                amenities: {
+                    include: {
+                        amenity: true
+                    }
+                }
+            }
         });
 
         res.status(200).json(properties);
